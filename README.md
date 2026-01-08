@@ -118,12 +118,6 @@ DMA is used to minimize CPU involvement and ensure efficient real-time data tran
 
 ### 📄 main.c (Core Application Code)
  /* USER CODE BEGIN Header */
-/**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/

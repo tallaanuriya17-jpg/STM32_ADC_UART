@@ -117,18 +117,56 @@ DMA is used to minimize CPU involvement and ensure efficient real-time data tran
 ---
 
 ### 📄 main.c (Core Application Code)
+ /* USER CODE BEGIN Header */
+/**
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2026 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
+/* USER CODE END Header */
 
-```c
+/* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include <stdio.h>
 
+/* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
+
 TIM_HandleTypeDef htim2;
 UART_HandleTypeDef huart2;
 
+/* USER CODE BEGIN PV */
 uint16_t adc_value;
 char uart_buf[50];
+/* USER CODE END PV */
 
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
+static void MX_ADC1_Init(void);
+static void MX_TIM2_Init(void);
+static void MX_USART2_UART_Init(void);
+
+/* USER CODE BEGIN 0 */
+/* USER CODE END 0 */
+
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
 int main(void)
 {
   HAL_Init();
@@ -137,29 +175,161 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_ADC1_Init();
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&adc_value, 1);
   MX_TIM2_Init();
   MX_USART2_UART_Init();
 
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t *)&adc_value, 1);
+  HAL_TIM_Base_Start(&htim2);
+
   while (1)
   {
-    /* CPU remains free */
   }
 }
 
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+/**
+  * @brief System Clock Configuration
+  */
+void SystemClock_Config(void)
 {
-    if (hadc->Instance == ADC1)
-    {
-        int len = sprintf(uart_buf, "ADC Value: %d\r\n", adc_value);
-        HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-    }
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+  __HAL_RCC_PWR_CLK_ENABLE();
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
+
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = 16;
+  RCC_OscInitStruct.PLL.PLLN = 336;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
+  RCC_OscInitStruct.PLL.PLLQ = 4;
+
+  HAL_RCC_OscConfig(&RCC_OscInitStruct);
+
+  RCC_ClkInitStruct.ClockType =
+      RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK |
+      RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+
+  HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2);
 }
+
+/**
+  * @brief ADC1 Initialization
+  */
+static void MX_ADC1_Init(void)
+{
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  hadc1.Instance = ADC1;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
+  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc1.Init.ScanConvMode = DISABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
+  hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T2_TRGO;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.DMAContinuousRequests = DISABLE;
+
+  HAL_ADC_Init(&hadc1);
+
+  sConfig.Channel = ADC_CHANNEL_0;
+  sConfig.Rank = 1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+
+  HAL_ADC_ConfigChannel(&hadc1, &sConfig);
+}
+
+/**
+  * @brief TIM2 Initialization
+  */
+static void MX_TIM2_Init(void)
+{
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 8399;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 99;
+
+  HAL_TIM_Base_Init(&htim2);
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+
+  HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig);
+}
+
+/**
+  * @brief USART2 Initialization
+  */
+static void MX_USART2_UART_Init(void)
+{
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+
+  HAL_UART_Init(&huart2);
+}
+
+/**
+  * @brief DMA Initialization
+  */
+static void MX_DMA_Init(void)
+{
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+}
+
+/**
+  * @brief GPIO Initialization
+  */
+static void MX_GPIO_Init(void)
+{
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+}
+
+/**
+  * @brief ADC Conversion Complete Callback
+  */
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
+{
+  if (hadc->Instance == ADC1)
+  {
+    int len = sprintf(uart_buf, "ADC Value: %d\r\n", adc_value);
+    HAL_UART_Transmit(&huart2, (uint8_t *)uart_buf, len, HAL_MAX_DELAY);
+  }
+}
+
+/**
+  * @brief Error Handler
+  */
+void Error_Handler(void)
+{
+  __disable_irq();
+  while (1)
+  {
+  }
+}
+
+
 
 
 ## 🧪 Build Output (Software Verification)
 
 After implementing the firmware, the project was compiled using **STM32CubeIDE**.
+
 
 ### ✔ Build Status
 - Build completed successfully
@@ -169,8 +339,6 @@ After implementing the firmware, the project was compiled using **STM32CubeIDE**
 
 📷 *Build Output Screenshot (0 Errors)*  
 ![Build Output](images/build_success.png)
-<img width="1086" height="689" alt="buid " src="https://github.com/user-attachments/assets/c0db836f-9347-4efe-b608-7fed753256c0" />
-
 
 This confirms that:
 - Peripheral initialization code is correct
@@ -188,7 +356,6 @@ This confirms that:
 - UART configured to transmit ADC values at **115200 baud**
 - ADC values updated periodically without CPU polling
 
-### ✔ Sample UART Output
 📷 *UART Output (Simulation)*  
 ![UART Output](images/uart_output.png)
 
@@ -200,7 +367,7 @@ Since hardware execution could not be demonstrated, the system behavior was veri
 
 Verification steps:
 - STM32F401 microcontroller model loaded with compiled firmware
-- ADC input simulated using a virtual potentiometer/signal source
+- ADC input simulated using a virtual potentiometer or signal source
 - UART output observed on a virtual terminal
 - ADC values varied correctly with changes in input signal
 
@@ -226,7 +393,7 @@ Verification steps:
 
 - Physical hardware execution not demonstrated due to lack of external programmer/debugger
 - ADC values in simulation are software-generated
-- UART output on real hardware requires external USB-to-TTL interface
+- UART output on real hardware requires an external USB-to-TTL interface
 
 ---
 
@@ -245,3 +412,4 @@ The firmware design is complete and **ready for deployment on real STM32 hardwar
 - Multi-channel ADC acquisition
 - Digital filtering and averaging
 - RTOS-based task scheduling
+

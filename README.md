@@ -306,6 +306,8 @@ void Error_Handler(void)
   {
   }
 }
+<img width="1086" height="689" alt="CODE" src="https://github.com/user-attachments/assets/05dc3b99-c638-49f4-adba-8bbf0aa9bf86" />
+
 ************************************************************************************
 ## 🧪 Build Output (Software Verification)
 

@@ -123,16 +123,6 @@ DMA is used to minimize CPU involvement and ensure efficient real-time data tran
   * @file           : main.c
   * @brief          : Main program body
   ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
   */
 /* USER CODE END Header */
 
@@ -322,10 +312,7 @@ void Error_Handler(void)
   {
   }
 }
-
-
-
-
+************************************************************************************
 ## 🧪 Build Output (Software Verification)
 
 After implementing the firmware, the project was compiled using **STM32CubeIDE**.
@@ -339,6 +326,7 @@ After implementing the firmware, the project was compiled using **STM32CubeIDE**
 
 📷 *Build Output Screenshot (0 Errors)*  
 ![Build Output](images/build_success.png)
+<img width="1086" height="689" alt="buid " src="https://github.com/user-attachments/assets/79f521ac-2a43-46f1-9cc9-37f7ab91b9dd" />
 
 This confirms that:
 - Peripheral initialization code is correct
@@ -358,6 +346,7 @@ This confirms that:
 
 📷 *UART Output (Simulation)*  
 ![UART Output](images/uart_output.png)
+<img width="1536" height="1024" alt="UART OUTPUT" src="https://github.com/user-attachments/assets/570eca6a-8add-414f-94c2-b6285da6af32" />
 
 ---
 
@@ -373,9 +362,11 @@ Verification steps:
 
 📷 *Proteus Simulation Schematic*  
 ![Proteus Schematic](images/proteus_schematic.png)
+<img width="664" height="453" alt="SCHEMATIC-PROTENUS" src="https://github.com/user-attachments/assets/ba48330a-5098-4887-9bc2-1b7415d8adca" />
 
 📷 *Proteus UART Output*  
 ![Proteus UART](images/proteus_uart.png)
+<img width="1536" height="1024" alt="UART PROTEUS" src="https://github.com/user-attachments/assets/d5343f4f-5d7d-408d-a31d-b40a5813c8e0" />
 
 ---
 
